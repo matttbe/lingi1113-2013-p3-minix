@@ -1,4 +1,6 @@
-#define NCALLS		 113	/* number of system calls allowed */
+/* Defrag: begin modif */
+#define NCALLS		 115	/* number of system calls allowed */
+/* Defrag: end modif */
 
 #define EXIT		   1 
 #define FORK		   2 
@@ -114,6 +116,11 @@
 #define SRV_KILL  	111	/* to PM: special kill call for RS */
 
 #define GCOV_FLUSH	112	/* flush gcov data from server to gcov files */
+
+/* Defrag: begin modif */
+#define DEFRAG		113 /* to VFS: defrag a file */
+#define NFRAGS		114 /* to VFS: nb of fragments in a file */
+/* Defrag: end modif */
 
 #define TASK_REPLY	121	/* to VFS: reply code from drivers, not 
 				 * really a standalone call.

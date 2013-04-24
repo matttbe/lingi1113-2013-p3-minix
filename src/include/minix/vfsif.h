@@ -114,8 +114,12 @@ typedef struct {
 #define REQ_RDLINK	(VFS_BASE + 30)
 #define REQ_GETDENTS	(VFS_BASE + 31)
 #define REQ_STATVFS		(VFS_BASE + 32)
+/* Defrag: begin modif */
+#define REQ_DEFRAG		(VFS_BASE + 33)
+#define REQ_NFRAGS		(VFS_BASE + 34)
 
-#define NREQS                   33
+#define NREQS                   35
+/* Defrag: end modif */
 
 #define IS_VFS_RQ(type) (((type) & ~0xff) == VFS_BASE)
 
