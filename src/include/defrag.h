@@ -39,6 +39,6 @@
  * Si une erreur se produit, -1 est retourné, et errno
  * reçoit le code correspondant à l’erreur.
  */
-_PROTOTYPE(int defrag(const char * file));
+_PROTOTYPE(int defrag, (const char *file));
 
 #endif /* __DEFRAG_H__ */
