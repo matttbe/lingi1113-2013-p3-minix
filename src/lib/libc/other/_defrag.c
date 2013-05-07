@@ -25,7 +25,6 @@
  */
 
 #include <lib.h>
-#define defrag	_defrag
 #include <unistd.h>
 #include <string.h> /* strlen */
 
