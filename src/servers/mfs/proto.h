@@ -33,6 +33,10 @@ _PROTOTYPE( int dev_open, (endpoint_t driver_e, dev_t dev, endpoint_t proc_e,
 _PROTOTYPE( void dev_close, (endpoint_t driver_e, dev_t dev)		);
 _PROTOTYPE( int fs_new_driver, (void)					);
 
+/* frags.c */
+_PROTOTYPE( int fs_defrag, (void)						);
+_PROTOTYPE( int fs_nfrags, (void)						);
+
 /* inode.c */
 _PROTOTYPE( struct inode *alloc_inode, (dev_t dev, mode_t bits)		);
 _PROTOTYPE( void dup_inode, (struct inode *ip)				);
