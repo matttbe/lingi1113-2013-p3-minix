@@ -12,9 +12,6 @@ struct vnode;
 
 typedef struct filp * filp_id_t;
 
-/* defrag.c */
-_PROTOTYPE( int defrag, (const char * file)			);
-
 /* device.c */
 _PROTOTYPE( int dev_open, (dev_t dev, int proc, int flags)		);
 _PROTOTYPE( int dev_reopen, (dev_t dev, int filp_no, int flags)		);
@@ -108,15 +105,14 @@ _PROTOTYPE( int do_svrctl, (void)					);
 _PROTOTYPE( int do_getsysinfo, (void)					);
 _PROTOTYPE( int pm_dumpcore, (int proc_e, struct mem_map *seg_ptr)	);
 _PROTOTYPE( void ds_event, (void)					);
+_PROTOTYPE( int do_defrag, (void)					);
+_PROTOTYPE( int do_nfrags, (void)					);
 
 /* mount.c */
 _PROTOTYPE( int do_fslogin, (void)                                      );
 _PROTOTYPE( int do_mount, (void)					);
 _PROTOTYPE( int do_umount, (void)					);
 _PROTOTYPE( int unmount, (dev_t dev, char *label)			);
-
-/* nfrags.c */
-_PROTOTYPE( int nfrags, (const char * file)			);
 
 /* open.c */
 _PROTOTYPE( int do_close, (void)					);
