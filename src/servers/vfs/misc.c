@@ -16,6 +16,8 @@
  *   do_svrctl:	  file system control
  *   do_getsysinfo:	request copy of FS data structure
  *   pm_dumpcore: create a core dump
+ *   do_defrag:	  defrag a file
+ *   do_nfrags:	  get the nb of fragments of a file
  */
 
 #include "fs.h"
@@ -625,4 +627,71 @@ PUBLIC void ds_event()
 	/* Perform up. */
 	dmap_endpt_up(owner_endpoint);
 }
+
+/*===========================================================================*
+ *				 do_defrag				     *
+ *===========================================================================*/
+PUBLIC int do_defrag()
+{
+	int iResult;
+	struct vnode *pVNode;
+	cp_grant_id_t grant_id;
+
+	/* See if file exists: utilities.c: int fetch_name(path, len, flag) */
+	if (fetch_name(m_in.name1, m_in.name1_length, M1) != OK)
+		return err_code;
+
+	pVNode = eat_path(PATH_NOFLAGS, fp); /* see open.c */
+	if (pVNode == NULL)
+		return err_code;
+
+	/* Check file type: not dir, etc. */
+	if ((pVNode->v_mode & I_TYPE) != I_REGULAR) {
+		put_vnode(pVNode); /* will free vnode */
+		return EPERM; /* TODO: check if these errors are < 1) */
+	}
+	if (pVNode->v_ref_count > 1) { /* resource busy if file opened */
+		put_vnode(vp);
+		return EBUSY; /* TODO: check if these errors are < 1) */
+	}
+
+	/* send request */
+	iResult = req_defrag(pVNode->v_fs_e, pVNode->v_inode_nr);
+	put_vnode(pVNode); /* free vnode */
+
+	return iResult;
+}
+
+/*===========================================================================*
+ *				 do_nfrags				     *
+ *===========================================================================*/
+PUBLIC int do_nfrags()
+{
+	int iResult;
+	struct vnode *pVNode;
+	cp_grant_id_t grant_id;
+
+	/* mostly the same as defrags except the request */
+
+	/* See if file exists */
+	if (fetch_name(m_in.name1, m_in.name1_length, M1) != OK)
+		return err_code; /* TODO: check if these errors are < 1) */
+
+	pVNode = eat_path(PATH_NOFLAGS, fp);
+	if (pVNode == NULL)
+		return err_code; /* TODO: check if these errors are < 1) */
+
+	/* Check file type: not dir, etc. */
+	if ((pVNode->v_mode & I_TYPE) != I_REGULAR) {
+		put_vnode(pVNode);
+		return EPERM; /* TODO: check if these errors are < 1) */
+	}
+
+	/* no need to check if the resource is busy, we do not modify it! */
+
+	iResult = req_nfrags(pVNode->v_fs_e, pVNode->v_inode_nr);
+	put_vnode(pVNode);
+	return iResult;
+}
+
 
