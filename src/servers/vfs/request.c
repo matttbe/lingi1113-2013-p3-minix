@@ -1178,10 +1178,9 @@ PRIVATE int fs_sendrec_f(char *file, int line, endpoint_t fs_e, message *reqm)
 /*===========================================================================*
  *				req_defrag				     *
  *===========================================================================*/
-PUBLIC int req_defrag(fs_e, inode_nr, who_e)
+PUBLIC int req_defrag(fs_e, inode_nr)
 int fs_e;
 ino_t inode_nr;
-int who_e;
 {
   /* inspired by req_unlink (but we need to read) and req_stat */
   cp_grant_id_t grant_id;
@@ -1210,10 +1209,9 @@ int who_e;
  /*===========================================================================*
  *				req_nfrags				     *
  *===========================================================================*/
-PUBLIC int req_nfrags(fs_e, inode_nr, who_e)
+PUBLIC int req_nfrags(fs_e, inode_nr)
 int fs_e;
 ino_t inode_nr;
-int who_e;
 {
   /* same as req_defrag but with 'm.m_type = REQ_NFRAGS;' */
   int sb;
