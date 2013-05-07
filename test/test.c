@@ -26,6 +26,8 @@
 
 
 #include <stdio.h>
+#include <nfrags.h>
+#include <defrag.h>
 
 int main(int argc, char **argv)
 {
