@@ -651,7 +651,7 @@ PUBLIC int do_defrag()
 		return EPERM; /* TODO: check if these errors are < 1) */
 	}
 	if (pVNode->v_ref_count > 1) { /* resource busy if file opened */
-		put_vnode(vp);
+		put_vnode(pVNode);
 		return EBUSY; /* TODO: check if these errors are < 1) */
 	}
 
