@@ -32,7 +32,10 @@ int main(int argc, char **argv)
 	int i;
 
 	i = nfrags ("test.c");
-	printf ("Frags: %d\n", i);
+	printf ("NFrags: %d\n", i);
+
+	i = defrag ("test.c");
+	printf ("DeFrag: %d\n", i);
 
 	return 0;
 }
