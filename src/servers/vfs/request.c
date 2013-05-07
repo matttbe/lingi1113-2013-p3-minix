@@ -1174,3 +1174,70 @@ PRIVATE int fs_sendrec_f(char *file, int line, endpoint_t fs_e, message *reqm)
   return(reqm->m_type);
 }
 
+
+/*===========================================================================*
+ *				req_defrag				     *
+ *===========================================================================*/
+PUBLIC int req_defrag(fs_e, inode_nr, who_e)
+int fs_e;
+ino_t inode_nr;
+int who_e;
+{
+  /* inspired by req_unlink (but we need to read) and req_stat */
+  cp_grant_id_t grant_id;
+  int sb;
+  int r;
+  message m;
+
+  grant_id = cpf_grant_direct(fs_e, (vir_bytes) &sb, sizeof(int), CPF_WRITE);
+  if (grant_id < 0)
+        panic("req_defrag: cpf_grant_* failed");
+
+  /* Fill in request message */
+  m.m_type = REQ_DEFRAG;
+  m.REQ_INODE_NR = inode_nr;
+  m.REQ_GRANT = grant_id;
+
+  /* Send/rec request */
+  r = fs_sendrec(fs_e, &m);
+  cpf_revoke(grant_id);
+
+  /* vircopy of value to the pointer defined in libc/defrag, passed as argument buf in the call to req_defrag and do_defrag */
+  return sb;
+}
+
+
+ /*===========================================================================*
+ *				req_nfrags				     *
+ *===========================================================================*/
+PUBLIC int req_nfrags(fs_e, inode_nr, who_e)
+int fs_e;
+ino_t inode_nr;
+int who_e;
+{
+  /* same as req_defrag but with 'm.m_type = REQ_NFRAGS;' */
+  int sb;
+  cp_grant_id_t grant_id;
+  int r;
+  message m;
+
+  grant_id = cpf_grant_direct(fs_e, (vir_bytes) &sb,
+      sizeof(int), CPF_WRITE);
+  if (grant_id < 0)
+        panic("req_nfrags: cpf_grant_* failed");
+
+  /* Fill in request message */
+  m.m_type = REQ_NFRAGS;
+  m.REQ_INODE_NR = inode_nr;
+  m.REQ_GRANT = grant_id;
+
+
+  /* Send/rec request */
+  r = fs_sendrec(fs_e, &m);
+  cpf_revoke(grant_id);
+
+  if (r == OK )
+        return sb;
+  return r;
+}
+
