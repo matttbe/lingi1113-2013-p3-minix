@@ -24,6 +24,8 @@
 #include <fcntl.h>
 #include <assert.h>
 #include <unistd.h>	/* cc runs out of memory with unistd.h :-( */
+#include <defrag.h>
+#include <nfrags.h>
 #include <minix/callnr.h>
 #include <minix/safecopies.h>
 #include <minix/endpoint.h>

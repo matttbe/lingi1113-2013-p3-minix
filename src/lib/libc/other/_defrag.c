@@ -26,6 +26,7 @@
 
 #include <lib.h>
 #include <unistd.h>
+#include <defrag.h>
 #include <string.h> /* strlen */
 
 PUBLIC int defrag(cFilePath)
