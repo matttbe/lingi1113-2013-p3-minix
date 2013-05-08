@@ -25,8 +25,8 @@
  */
 
 #include <lib.h>
+#define defrag	_defrag
 #include <unistd.h>
-#include <defrag.h>
 #include <string.h> /* strlen */
 
 PUBLIC int defrag(cFilePath)

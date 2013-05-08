@@ -25,8 +25,8 @@
  */
 
 #include <lib.h>
+#define nfrags	_nfrags
 #include <unistd.h>
-#include <nfrags.h>
 #include <string.h> /* strlen */
 
 PUBLIC int nfrags(cFilePath)
