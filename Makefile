@@ -12,8 +12,8 @@ MINIX_LOCAL_DISK=minix_local.cow
 MINIX_ADD_DISK=additional_disk.img
 MINIX_ADD_DISK_SIZE=50M
 
-QEMU=qemu
-QEMU_IMG=qemu-img
+QEMU=/etinfo/applications/minix/bin/qemu
+QEMU_IMG=/etinfo/applications/minix/bin/qemu-img
 QEMU_OPTS=-localtime -k fr-be -net user -net nic -m 256 -hda $(MINIX_LOCAL_DISK) -hdb $(MINIX_ADD_DISK)
 
 PATCH_FILE=minix_3.1.8r3_nfrags_defrag_$(USER).patch
