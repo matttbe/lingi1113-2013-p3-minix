@@ -1,42 +1,9 @@
-/*
- * Project P3
- * 
- * Copyright 2013 UCLouvain / pole INGI
- *
- * Authors:
- *   Matthieu Baerts <matthieu.baerts@student.uclouvain.be>
- *   Helene Verhaeghe <helene.verhaeghe@student.uclouvain.be>
- * 
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- * 
- */
+#ifndef _NFRAGS_H_
+#define _NFRAGS_H_
 
+#include <stdlib.h>
 
-#ifndef __NFRAGS_H__
-#define __NFRAGS_H__
+_PROTOTYPE( int nfrags, (const char *cPathFile));
 
-/**
- * entree: *file* Une chaine de caracteres indiquant le chemin d’acces
- * vers un fichier, absolu ou relatif.
- * valeur de retour: La valeur de retour est le nombre de
- * fragments non contigus qui constituent le fichier file.
- * Un fichier non fragmente contient un fragment.
- * Si une erreur se produit, -1 est retourne, et errno
- * recoit le code correspondant a l’erreur.
- */
-_PROTOTYPE(int nfrags, (const char *));
+#endif /* _NFRAGS_H_ */
 
-#endif /* __NFRAGS_H__ */
