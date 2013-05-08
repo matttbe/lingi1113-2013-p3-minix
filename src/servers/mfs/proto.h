@@ -22,9 +22,6 @@ _PROTOTYPE( void set_blocksize, (unsigned int blocksize)				);
 _PROTOTYPE( void rw_scattered, (dev_t dev,
 			struct buf **bufq, int bufqsize, int rw_flag)	);
 
-/* defrag.c */
-_PROTOTYPE( int defrag, (const char * file)			);
-
 /* device.c */
 _PROTOTYPE( int block_dev_io, (int op, dev_t dev, endpoint_t proc_e,
 				void *buf, u64_t pos, size_t bytes)	);
@@ -64,9 +61,6 @@ _PROTOTYPE( int fs_sync, (void)						);
 _PROTOTYPE( int fs_mountpoint, (void)					);
 _PROTOTYPE( int fs_readsuper, (void)                                    );
 _PROTOTYPE( int fs_unmount, (void)					);
-
-/* nfrags.c */
-_PROTOTYPE( int nfrags, (const char * file)			);
 
 /* open.c */
 _PROTOTYPE( int fs_create, (void)					);
