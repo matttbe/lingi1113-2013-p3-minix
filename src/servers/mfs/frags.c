@@ -35,11 +35,6 @@
 #include <minix/vfsif.h>
 #include <stdio.h>
 
-/*
-#ifndef OK
-#define OK 0
-#endif
-*/
 PRIVATE int get_nb_fragments(pInode)
 register struct inode *pInode;
 {
@@ -81,7 +76,7 @@ PUBLIC int fs_nfrags()
 
 	fs_m_out.m9_s2 = iNFrags
 
-	return OK;
+	return 0; /* OK */
 }
 
 
