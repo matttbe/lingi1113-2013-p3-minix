@@ -635,12 +635,15 @@ PUBLIC void ds_event()
  *===========================================================================*/
 PUBLIC int do_defrag()
 {
-	int iResult;
+	int iResult, iLength;
 	struct vnode *pVNode;
-	cp_grant_id_t grant_id;
+	char *cFilePath;
+
+	cFilePath = m_in.m3_p1;
+	iLength = m_in.m3_i1;
 
 	/* See if file exists: utilities.c: int fetch_name(path, len, flag) */
-	if (fetch_name(m_in.name1, m_in.name1_length, M1) != OK)
+	if (fetch_name(cFilePath, iLength, M1) != OK)
 		return err_code;
 
 	pVNode = eat_path(PATH_NOFLAGS, fp); /* see open.c */
@@ -669,14 +672,17 @@ PUBLIC int do_defrag()
  *===========================================================================*/
 PUBLIC int do_nfrags()
 {
-	int iResult;
+	int iResult, iLength;
 	struct vnode *pVNode;
-	cp_grant_id_t grant_id;
+	char *cFilePath;
 
 	/* mostly the same as defrags except the request */
 
-	/* See if file exists */
-	if (fetch_name(m_in.name1, m_in.name1_length, M1) != OK)
+	cFilePath = m_in.m3_p1;
+	iLength = m_in.m3_i1;
+
+	/* See if file exists: utilities.c: int fetch_name(path, len, flag) */
+	if (fetch_name(cFilePath, iLength, M1) != OK)
 		return err_code; /* TODO: check if these errors are < 1) */
 
 	pVNode = eat_path(PATH_NOFLAGS, fp);
