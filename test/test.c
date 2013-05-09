@@ -100,19 +100,24 @@ int main(int argc, char **argv)
 {
 	int iReturn;
 
+	printf ("Test NFrags: BEGIN\n");
 	test_wrong_file_dir (TRUE);
 	test_wrong_file_unavailable (TRUE);
 	test_file_busy (TRUE);
 
+	printf ("Real test NFrags:\n");
 	iReturn = nfrags (_cFilePath);
-	printf ("Test NFrags: %d\n", iReturn);
+	printf ("Test NFrags: DONE => %d\n\n", iReturn);
 
+
+	printf ("Test DeFrag: BEGIN\n");
 	test_wrong_file_dir (FALSE);
 	test_wrong_file_unavailable (FALSE);
 	test_file_busy (FALSE);
 
+	printf ("Real test DeFrag:\n");
 	iReturn = defrag (_cFilePath);
-	printf ("Test DeFrag: %d\n", iReturn);
+	printf ("Test DeFrag: DONE => %d\n", iReturn);
 
 	return 0;
 }
