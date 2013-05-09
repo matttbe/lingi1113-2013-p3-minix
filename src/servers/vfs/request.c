@@ -1201,8 +1201,7 @@ ino_t inode_nr;
   r = fs_sendrec(fs_e, &m);
   cpf_revoke(grant_id);
 
-  /* vircopy of value to the pointer defined in libc/defrag, passed as argument buf in the call to req_defrag and do_defrag */
-  return sb;
+  return r;
 }
 
 
@@ -1219,8 +1218,7 @@ ino_t inode_nr;
   int r;
   message m;
 
-  grant_id = cpf_grant_direct(fs_e, (vir_bytes) &sb,
-      sizeof(int), CPF_WRITE);
+  grant_id = cpf_grant_direct(fs_e, (vir_bytes) &sb, sizeof(int), CPF_WRITE);
   if (grant_id < 0)
         panic("req_nfrags: cpf_grant_* failed");
 
@@ -1234,8 +1232,6 @@ ino_t inode_nr;
   r = fs_sendrec(fs_e, &m);
   cpf_revoke(grant_id);
 
-  if (r == OK )
-        return sb;
   return r;
 }
 
