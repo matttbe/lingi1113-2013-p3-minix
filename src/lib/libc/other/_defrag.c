@@ -11,7 +11,7 @@ const char *cFilePath;
    * string fits in the message, it is copied there.  If not, a pointer to
    * it is passed. => loadname.c (e.g. posix/_unlink.c)
    */
-  _loadname(cFileName, &m);
+  _loadname(cFilePath, &m);
 
   r = _syscall(VFS_PROC_NR, DEFRAG, &m);
   if (r < 0)
