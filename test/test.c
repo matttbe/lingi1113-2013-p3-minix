@@ -69,7 +69,6 @@ static test_wrong_file_unavailable (int bNFrags)
 
 	printf ("Return: %d, error: %d\n", iReturn, errno);
 }
-}
 
 static test_file_busy (int bNFrags)
 {
