@@ -47,6 +47,8 @@ PUBLIC _PROTOTYPE (int (*fs_call_vec[]),
         no_sys,	            /* 30  */
         no_sys,	            /* 31  */
 	no_sys,             /* 32 */
+	no_sys,             /* 33 */
+	no_sys,             /* 34 */
 };
 
 /* Device Handlers (/dev/uds) */
