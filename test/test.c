@@ -65,7 +65,7 @@ static test_wrong_file_unavailable (int bNFrags)
 	else
 		iReturn = defrag (_cWrongFilePathError);
 	assert (iReturn == -1);
-	/* assert (errno == EFTYPE); */
+	assert (errno == ENOENT); /* no such file or directory */
 
 	printf ("Return: %d, error: %d\n", iReturn, errno);
 }
@@ -80,11 +80,16 @@ static test_file_busy (int bNFrags)
 	fd = fopen (_cFilePath, "r");
 
 	if (bNFrags)
+	{	/* we can read a file which is busy */
 		iReturn = nfrags (_cFilePath);
+		assert (iReturn >= 0);
+	}
 	else
+	{
 		iReturn = defrag (_cFilePath);
-	assert (iReturn == -1);
-	assert (errno == EBUSY);
+		assert (iReturn == -1);
+		assert (errno == EBUSY);
+	}
 
 	printf ("Return: %d, error: %d\n", iReturn, errno);
 
