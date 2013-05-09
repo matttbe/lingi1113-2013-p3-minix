@@ -46,6 +46,8 @@ register struct inode *pInode;
 
 	/** TODO: check block... */
 
+	printf ("|");
+
 	for (iPos = 0 ; iPos < pInode->i_size ; iPos += pInode->i_sp->s_block_size)
 	{
 		pCurrBlock = read_map (pInode, iPos);
@@ -54,10 +56,20 @@ register struct inode *pInode;
 			/* if the current block is distant of 2 to the previous, we have a fragment */
 			if (pCurrBlock - pPrevBlock > 1
 				|| pCurrBlock - pPrevBlock < 0) /* can be negative? */
-				iNFrags++; 
+			{
+				iNFrags++;
+				printf (" ");
+			}
+			else
+				printf ("*");
 		}
+		else
+			printf ("^");
 		pPrevBlock = pCurrBlock;
 	}
+
+	printf ("|\n");
+
 	return iNFrags;
 }
 
