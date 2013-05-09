@@ -51,7 +51,7 @@ static test_wrong_file_dir (int bNFrags)
 	assert (iReturn == -1);
 	assert (errno == EFTYPE);
 
-	printf ("Return: %d, error: %d\n", iReturn, errno);
+	printf ("\tReturn: %d, error: %d\n", iReturn, errno);
 }
 
 static test_wrong_file_unavailable (int bNFrags)
@@ -67,7 +67,7 @@ static test_wrong_file_unavailable (int bNFrags)
 	assert (iReturn == -1);
 	assert (errno == ENOENT); /* no such file or directory */
 
-	printf ("Return: %d, error: %d\n", iReturn, errno);
+	printf ("\tReturn: %d, error: %d\n", iReturn, errno);
 }
 
 static test_file_busy (int bNFrags)
@@ -91,7 +91,7 @@ static test_file_busy (int bNFrags)
 		assert (errno == EBUSY);
 	}
 
-	printf ("Return: %d, error: %d\n", iReturn, errno);
+	printf ("\tReturn: %d, error: %d\n", iReturn, bNFrags ? 0 : errno);
 
 	fclose (fd);
 }
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 	test_wrong_file_unavailable (TRUE);
 	test_file_busy (TRUE);
 
-	printf ("Real test NFrags:\n");
+	printf (">> Real test NFrags:\n");
 	iReturn = nfrags (_cFilePath);
 	printf ("Test NFrags: DONE => %d\n\n", iReturn);
 
@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 	test_wrong_file_unavailable (FALSE);
 	test_file_busy (FALSE);
 
-	printf ("Real test DeFrag:\n");
+	printf (">> Real test DeFrag:\n");
 	iReturn = defrag (_cFilePath);
 	printf ("Test DeFrag: DONE => %d\n", iReturn);
 
