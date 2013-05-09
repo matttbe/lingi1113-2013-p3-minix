@@ -40,6 +40,8 @@ register struct inode *pInode;
 
 	iNFrags = 0;
 
+	/** TODO: check block... */
+
 	for (iPos = 0 ; iPos < pInode->i_size ; iPos += pInode->i_sp->s_block_size)
 	{
 		pCurrBlock = read_map (pInode, iPos);
@@ -68,7 +70,9 @@ PUBLIC int fs_nfrags()
 
 	put_inode (pInode); /* will free the inode, etc. */
 
-	return iNFrags;
+	fs_m_out.m9_s2 = iNFrags
+
+	return OK;
 }
 
 
