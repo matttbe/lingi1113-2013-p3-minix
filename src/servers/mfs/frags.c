@@ -74,9 +74,9 @@ PUBLIC int fs_nfrags()
 
 	put_inode (pInode); /* will free the inode, etc. */
 
-	fs_m_out.m9_s2 = iNFrags
+	fs_m_out.m9_s2 = iNFrags;
 
-	return 0; /* OK */
+	return OK;
 }
 
 
