@@ -34,9 +34,9 @@
 #define TRUE 1
 #define FALSE 0
 
-#define _cFilePath 				"/mnt/disk/test.txt";
-#define _cWrongFilePathDir 		"/mnt/disk/";
-#define _cWrongFilePathError 	"/mnt/disk/error.txt";
+#define _cFilePath 				"/mnt/disk/test.txt"
+#define _cWrongFilePathDir 		"/mnt/disk/"
+#define _cWrongFilePathError 	"/mnt/disk/error.txt"
 
 static test_wrong_file_dir (int bNFrags)
 {
