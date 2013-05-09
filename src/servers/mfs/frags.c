@@ -29,6 +29,10 @@
 #include "inode.h"
 #include "super.h"
 #include <minix/vfsif.h>
+#include "proto.h"
+#include <errno.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <stdio.h>
 
 PRIVATE int get_nb_fragments(pInode)
