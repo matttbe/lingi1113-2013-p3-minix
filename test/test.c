@@ -25,19 +25,90 @@
  */
 
 
-#include <stdio.h>
 #include <nfrags.h>
 #include <defrag.h>
+#include <stdio.h>  /* FILE */
+#include <assert.h> /* assert() */
+#include <errno.h>  /* EFTYPE, EBUSY, etc. */
+
+#define TRUE 1
+#define FALSE 0
+
+#define _cFilePath 				"/mnt/disk/test.txt";
+#define _cWrongFilePathDir 		"/mnt/disk/";
+#define _cWrongFilePathError 	"/mnt/disk/error.txt";
+
+static test_wrong_file_dir (int bNFrags)
+{
+	int iReturn;
+
+	printf ("Test Wrong file: dir: %s\n", _cWrongFilePathDir);
+
+	if (bNFrags)
+		iReturn = nfrags (_cWrongFilePathDir);
+	else
+		iReturn = defrag (_cWrongFilePathDir);
+	assert (iReturn == -1);
+	assert (errno == EFTYPE);
+
+	printf ("Return: %d, error: %d\n", iReturn, errno);
+}
+
+static test_wrong_file_unavailable (int bNFrags)
+{
+	int iReturn;
+
+	printf ("Test Wrong file: unavailable: %s\n", _cWrongFilePathError);
+
+	if (bNFrags)
+		iReturn = nfrags (_cWrongFilePathError);
+	else
+		iReturn = defrag (_cWrongFilePathError);
+	assert (iReturn == -1);
+	/* assert (errno == EFTYPE); */
+
+	printf ("Return: %d, error: %d\n", iReturn, errno);
+}
+}
+
+static test_file_busy (int bNFrags)
+{
+	int iReturn;
+	FILE *fd; /* To have a busy file */
+
+	printf ("Test file: busy: %s\n", _cFilePath);
+
+	fd = fopen (_cFilePath, "r");
+
+	if (bNFrags)
+		iReturn = nfrags (_cFilePath);
+	else
+		iReturn = defrag (_cFilePath);
+	assert (iReturn == -1);
+	assert (errno == EBUSY);
+
+	printf ("Return: %d, error: %d\n", iReturn, errno);
+
+	fclose (fd);
+}
 
 int main(int argc, char **argv)
 {
-	int i;
+	int iReturn;
 
-	i = nfrags ("test.c");
-	printf ("NFrags: %d\n", i);
+	test_wrong_file_dir (TRUE);
+	test_wrong_file_unavailable (TRUE);
+	test_file_busy (TRUE);
 
-	i = defrag ("test.c");
-	printf ("DeFrag: %d\n", i);
+	iReturn = nfrags (_cFilePath);
+	printf ("Test NFrags: %d\n", iReturn);
+
+	test_wrong_file_dir (FALSE);
+	test_wrong_file_unavailable (FALSE);
+	test_file_busy (FALSE);
+
+	iReturn = defrag (_cFilePath);
+	printf ("Test DeFrag: %d\n", iReturn);
 
 	return 0;
 }
