@@ -11,12 +11,15 @@ else
 	echo "create dir: $DISK"
 	mkdir $DISK
 	/sbin/mkfs.mfs /dev/c0d1
+	sleep 1 ## it seems we need a delay
 	mount /dev/c0d1 $DISK
+	sleep 1 ## it seems we need a delay
 fi
 
 echo "Create test file: $TEST_FILE"
 dd if=/dev/urandom of=$TEST_FILE count=10 ibs=4096 obs=4096 bs=4096
 
+echo "Fragment this file"
 cp $TEST_FILE $TMP_FILE0
 
 # seq is not available..
