@@ -635,9 +635,11 @@ PUBLIC void ds_event()
  *===========================================================================*/
 PUBLIC int do_defrag()
 {
-	int iResult, iLength;
+	int iReturn, iLength, iNFrags;
 	struct vnode *pVNode;
 	char *cFilePath;
+	endpoint_t v_fs_e; /* for req_nfrags and req_defrag */
+	ino_t v_inode_nr;
 
 	cFilePath = m_in.m3_p1;
 	iLength = m_in.m3_i1;
@@ -653,18 +655,28 @@ PUBLIC int do_defrag()
 	/* Check file type: not dir, etc. */
 	if ((pVNode->v_mode & I_TYPE) != I_REGULAR) {
 		put_vnode(pVNode); /* will free vnode */
-		return EPERM; /* TODO: check if these errors are < 1) */
+		return EFTYPE;
 	}
 	if (pVNode->v_ref_count > 1) { /* resource busy if file opened */
 		put_vnode(pVNode);
-		return EBUSY; /* TODO: check if these errors are < 1) */
+		return EBUSY;
 	}
 
-	/* send request */
-	iResult = req_defrag(pVNode->v_fs_e, pVNode->v_inode_nr);
-	put_vnode(pVNode); /* free vnode */
+	v_fs_e = pVNode->v_fs_e;
+	v_inode_nr = pVNode->v_inode_nr;
+	put_vnode(pVNode); /* release it not */
 
-	return iResult;
+	/* check if we have to defrag this file */
+	iReturn = req_nfrags(v_fs_e, v_inode_nr, &iNFrags);
+	if (iReturn == OK && iNFrags > 1) {
+		printf ("We need to defrag it: %d\n", iNFrags); /** TODO: REMOVE!! */
+		iReturn = req_defrag(v_fs_e, v_inode_nr);
+	}
+
+	if (iReturn != OK)
+		return iReturn;
+	else
+		return iNFrags;
 }
 
 /*===========================================================================*
@@ -672,9 +684,11 @@ PUBLIC int do_defrag()
  *===========================================================================*/
 PUBLIC int do_nfrags()
 {
-	int iResult, iLength;
+	int iReturn, iLength, iNFrags;
 	struct vnode *pVNode;
 	char *cFilePath;
+	endpoint_t v_fs_e; /* for req_nfrags */
+	ino_t v_inode_nr;
 
 	/* mostly the same as defrags except the request */
 
@@ -683,23 +697,30 @@ PUBLIC int do_nfrags()
 
 	/* See if file exists: utilities.c: int fetch_name(path, len, flag) */
 	if (fetch_name(cFilePath, iLength, M1) != OK)
-		return err_code; /* TODO: check if these errors are < 1) */
+		return err_code;
 
 	pVNode = eat_path(PATH_NOFLAGS, fp);
 	if (pVNode == NULL)
-		return err_code; /* TODO: check if these errors are < 1) */
+		return err_code;
 
 	/* Check file type: not dir, etc. */
 	if ((pVNode->v_mode & I_TYPE) != I_REGULAR) {
 		put_vnode(pVNode);
-		return EPERM; /* TODO: check if these errors are < 1) */
+		return EFTYPE; /* wrong file format or type */
 	}
 
 	/* no need to check if the resource is busy, we do not modify it! */
 
-	iResult = req_nfrags(pVNode->v_fs_e, pVNode->v_inode_nr);
-	put_vnode(pVNode);
-	return iResult;
+	v_fs_e = pVNode->v_fs_e;
+	v_inode_nr = pVNode->v_inode_nr;
+	put_vnode(pVNode); /* release it not */
+
+	iReturn = req_nfrags(v_fs_e, v_inode_nr, &iNFrags);
+
+	if (iReturn != OK)
+		return iReturn;
+	else
+		return iNFrags;
 }
 
 

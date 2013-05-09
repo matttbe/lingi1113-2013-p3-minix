@@ -1179,7 +1179,7 @@ PRIVATE int fs_sendrec_f(char *file, int line, endpoint_t fs_e, message *reqm)
  *				req_defrag				     *
  *===========================================================================*/
 PUBLIC int req_defrag(fs_e, inode_nr)
-int fs_e;
+endpoint_t fs_e;
 ino_t inode_nr;
 {
   /* inspired by req_unlink (but we need to read) and req_stat */
@@ -1188,6 +1188,7 @@ ino_t inode_nr;
   int r;
   message m;
 
+  /** TODO: check: usefull? */
   grant_id = cpf_grant_direct(fs_e, (vir_bytes) &sb, sizeof(int), CPF_WRITE);
   if (grant_id < 0)
         panic("req_defrag: cpf_grant_* failed");
@@ -1208,11 +1209,12 @@ ino_t inode_nr;
  /*===========================================================================*
  *				req_nfrags				     *
  *===========================================================================*/
-PUBLIC int req_nfrags(fs_e, inode_nr)
-int fs_e;
+PUBLIC int req_nfrags(fs_e, inode_nr, iNFrags)
+endpoint_t fs_e;
 ino_t inode_nr;
+int* iNFrags;
 {
-  /* same as req_defrag but with 'm.m_type = REQ_NFRAGS;' */
+  /* same as req_defrag but with 'm.m_type = REQ_NFRAGS;' & iNFrags */
   int sb;
   cp_grant_id_t grant_id;
   int r;
@@ -1230,6 +1232,7 @@ ino_t inode_nr;
 
   /* Send/rec request */
   r = fs_sendrec(fs_e, &m);
+  *iNFrags = m.m9_s2 /** TODO: maybe took another one? **/
   cpf_revoke(grant_id);
 
   return r;
