@@ -1232,7 +1232,7 @@ int* iNFrags;
 
   /* Send/rec request */
   r = fs_sendrec(fs_e, &m);
-  *iNFrags = m.m9_s2 /** TODO: maybe took another one? **/
+  *iNFrags = m.m9_s2; /** TODO: maybe took another one? **/
   cpf_revoke(grant_id);
 
   return r;
