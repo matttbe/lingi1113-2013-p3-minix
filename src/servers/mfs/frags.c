@@ -28,13 +28,18 @@
 #include "buf.h"
 #include "inode.h"
 #include "super.h"
-#include <minix/vfsif.h>
 #include "proto.h"
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <minix/vfsif.h>
 #include <stdio.h>
 
+/*
+#ifndef OK
+#define OK 0
+#endif
+*/
 PRIVATE int get_nb_fragments(pInode)
 register struct inode *pInode;
 {
