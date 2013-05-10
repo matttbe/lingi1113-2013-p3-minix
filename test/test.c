@@ -93,9 +93,11 @@ static test_file_busy (int bNFrags)
 		assert (errno == EBUSY);
 	}
 
-	printf ("\tReturn: %d (espected: %d), error: %d (espected: %d)\n",
-		iReturn, bNFrags ? iReturn : -1,
-		bNFrags ? 0 : errno, bNFrags ? 0 : EBUSY);
+	if (bNFrags)
+		printf ("\tReturn: %d (espected: >= 0)\n", iReturn);
+	else
+		printf ("\tReturn: %d (espected: %d), error: %d (espected: %d)\n",
+			iReturn, -1, errno, EBUSY);
 
 	fclose (fd);
 }
