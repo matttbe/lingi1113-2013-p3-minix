@@ -233,6 +233,8 @@ PUBLIC int fs_defrag()
 		return iReturn;
 	}
 
+	printf ("Find a zone: %d\n", iFreeZoneStart); /** TODO: remove */
+
 	/* We have a zone, reserve this space */
 	iReturn = reserve_zone (pInode->i_sp, iFreeZoneStart, iNZones);
 	if (iReturn != OK)
@@ -241,6 +243,8 @@ PUBLIC int fs_defrag()
 		return iReturn;
 	}
 
+	printf ("Zone reserved\n"); /** TODO: remove */
+
 	/* Move bits and update all things linked to the inode */
 	iReturn = move_bits_full (iNZones, pInode, iFreeZoneStart);
 	if (iReturn != OK)
@@ -248,6 +252,8 @@ PUBLIC int fs_defrag()
 		put_inode (pInode); /* release the inode */
 		return iReturn;
 	}
+
+	printf ("Zone reserved\n"); /** TODO: remove */
 
 	put_inode (pInode); /* release the inode */
 
