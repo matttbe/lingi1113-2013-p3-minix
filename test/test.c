@@ -93,9 +93,11 @@ static test_file_busy (int bNFrags)
 		assert (errno == EBUSY);
 	}
 
-	printf ("\tReturn: %d (expected: %d), error: %d (expected: %d)\n",
-		iReturn, bNFrags ? iReturn : -1,
-		bNFrags ? 0 : errno, bNFrags ? 0 : EBUSY);
+	if (bNFrags)
+		printf ("\tReturn: %d (expected: >= 0)\n", iReturn);
+	else
+		printf ("\tReturn: %d (expected: %d), error: %d (expected: %d)\n",
+			iReturn, -1, errno, EBUSY);
 
 	fclose (fd);
 }
@@ -115,13 +117,17 @@ int main(int argc, char **argv)
 
 
 	printf ("Test DeFrag: BEGIN\n");
-	test_wrong_file_dir (FALSE);
-	test_wrong_file_unavailable (FALSE);
+	/* test_wrong_file_dir (FALSE); // we used the same function used in nfrags...
+	test_wrong_file_unavailable (FALSE); */
 	test_file_busy (FALSE);
 
 	printf (">> Real test DeFrag:\n");
 	iReturn = defrag (_cFilePath);
 	printf ("Test DeFrag: DONE => %d\n", iReturn);
+
+	printf (">> Check with NFrags:\n");
+	iReturn = nfrags (_cFilePath);
+	printf ("Test NFrags: DONE => %d\n", iReturn);
 
 	return 0;
 }
