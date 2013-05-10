@@ -47,7 +47,7 @@ register struct inode *pInode;
 	printf ("|");
 
 	/* Init */
-	pPrevBlock = read_map (pInode, iPos);
+	pPrevBlock = read_map (pInode, 0);
 
 	for (iPos = 0 ; iPos < pInode->i_size ; iPos += pInode->i_sp->s_block_size)
 	{
