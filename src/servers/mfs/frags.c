@@ -228,17 +228,26 @@ PUBLIC int fs_defrag()
 	/* we need to find somewhere to place the new file */
 	iReturn = get_free_zone_start (pInode->i_sp, iNZones, &iFreeZoneStart);
 	if (iReturn != OK)
+	{
+		put_inode (pInode); /* release the inode */
 		return iReturn;
+	}
 
 	/* We have a zone, reserve this space */
 	iReturn = reserve_zone (pInode->i_sp, iFreeZoneStart, iNZones);
 	if (iReturn != OK)
+	{
+		put_inode (pInode); /* release the inode */
 		return iReturn;
+	}
 
 	/* Move bits and update all things linked to the inode */
 	iReturn = move_bits_full (iNZones, pInode, iFreeZoneStart);
 	if (iReturn != OK)
+	{
+		put_inode (pInode); /* release the inode */
 		return iReturn;
+	}
 
 	put_inode (pInode); /* release the inode */
 
