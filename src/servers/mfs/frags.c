@@ -65,7 +65,7 @@ register struct inode *pInode;
 				printf ("*");
 		}
 		else
-			printf ("^");
+			printf ("^"); /* we are here at startup (or disk error?)*/
 		pPrevBlock = pCurrBlock;
 	}
 
