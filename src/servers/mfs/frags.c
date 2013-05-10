@@ -133,7 +133,7 @@ PRIVATE int get_free_zone_start (pSuperBlock, iNZones, iFreeZoneStart)
 	while (uNewStartBlock < uNBlockMap)
 	{
 		/* Get the current block (super.c:free_bit) */
-		pBuf = get_block (pSuperBlock->s_dev, start_block + uNewStartBlock, NORMAL);
+		pBuf = get_block (pSuperBlock->s_dev, iStartBlock + uNewStartBlock, NORMAL);
 		pWordLimit = &pBuf->b_bitmap[FS_BITMAP_CHUNKS(pSuperBlock->s_block_size)];
 	
 		/* Iterate over the words in block. */
