@@ -15,6 +15,6 @@ const char *cFilePath;
 
   r = _syscall(VFS_PROC_NR, NFRAGS, &m);
   if (r < 0)
-	return -1; /* TODO: we want -1 if there is an error */
+	return -1; /* we want -1 if there is an error */
   return r;
 }

@@ -81,7 +81,7 @@ PUBLIC int fs_nfrags()
 	/* Get the right inode if available */
 	pInode = get_inode (fs_dev, (ino_t)fs_m_in.REQ_INODE_NR);
 	if (! pInode)
-		return EINVAL;
+		return EINVAL; /* invalid argument */
 
 	iNFrags = get_nb_fragments (pInode);
 
@@ -220,7 +220,7 @@ int iNZones;
 
 	i = iFreeZoneStart % FS_BITCHUNK_BITS;
 	iNFreeBits = 0;
-	while(uNewStartBlock < uNBlockMap)
+	while (uNewStartBlock < uNBlockMap)
 	{
 		/* Get the current block (super.c:free_bit) */
 		pBuf = get_block (pSuperBlock->s_dev, iStartBlock + uNewStartBlock, NORMAL);
@@ -335,7 +335,7 @@ PUBLIC int fs_defrag()
 	/* Get the right inode if available */
 	pInode = get_inode (fs_dev, (ino_t)fs_m_in.REQ_INODE_NR);
 	if (! pInode)
-		return EINVAL;
+		return EINVAL; /* invalid argument */
 
 	/* we need the size of the zone: link between the block and the zone
 	   --> read_map from read.c */
