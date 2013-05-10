@@ -101,9 +101,9 @@ PUBLIC int fs_nfrags()
  * inspired by super.c:alloc_bit (but rename variables... hard to have shorter name...
  */
 PRIVATE int get_free_zone_start (pSuperBlock, iNZones, iFreeZoneStart)
-		 struct super_block* pSuperBlock;
-		 int iNZones;
-		 bit_t *iFreeZoneStart;
+struct super_block* pSuperBlock;
+int iNZones;
+bit_t *iFreeZoneStart;
 {
 	block_t iStartBlock;
 	bit_t iNBitsMap, i, iBitId;
@@ -190,9 +190,9 @@ PRIVATE int get_free_zone_start (pSuperBlock, iNZones, iFreeZoneStart)
 
 
 PRIVATE int reserve_zone(pSuperBlock, iFreeZoneStart, iNZones)
-		 struct super_block* pSuperBlock;
-		 bit_t iFreeZoneStart;
-		 int iNZones;
+struct super_block* pSuperBlock;
+bit_t iFreeZoneStart;
+int iNZones;
 {
 	block_t iStartBlock;
 	bit_t iNBitsMap, i, iBitId;
@@ -273,11 +273,55 @@ PRIVATE int reserve_zone(pSuperBlock, iFreeZoneStart, iNZones)
 
 
 PRIVATE int move_bits_full(pInode, iFreeZoneStart, iNZones)
-		 struct inode *pInode;
-		 bit_t iFreeZoneStart;
-		 int iNZones;
+struct inode *pInode;
+bit_t iFreeZoneStart;
+int iNZones;
 {
+	int iNBlocksZone, iNZonesChanged, i, iNewLocation;
+	block_t iCurrBlock;
+	struct buf *pBufOld, *pBufNew;
+	off_t iOffSet;
 
+	iOffSet = 0;
+	/* get number of blocks per zone in the superblock */
+	iNBlocksZone = (1 << pInode->i_sp->s_log_zone_size);
+
+	/* Iterations sur le nombre de zones du fichier */
+	for (iNZonesChanged = 0; iNZonesChanged < iNZones; iNZonesChanged++)
+	{
+		/* Get current block from the map -> read.c */
+		iCurrBlock = read_map (pInode, iOffSet);
+		iNewLocation = (pInode->i_sp->s_firstdatazone - 1)
+		                + iFreeZoneStart + iNZonesChanged;
+
+		/* get all blocks for the zone and move them on the new allocated zone */
+		for (i = 0; i < iNBlocksZone; i++)
+		{
+			/* We can move blocks: get blocks */
+			pBufOld = get_block (pInode->i_dev, iCurrBlock + i, NORMAL);
+			pBufNew = get_block (pInode->i_dev, iNewLocation * iNBlocksZone + i, NORMAL);
+
+			/* copy the content of the buffers */
+			memcpy (pBufNew->b_data, pBufOld->b_data, pInode->i_sp->s_block_size);
+
+			/* busy buf */
+			pBufNew->b_dirt = DIRTY;
+
+			/* release them */
+			put_block (pBufOld, FULL_DATA_BLOCK);
+			put_block (pBufNew, FULL_DATA_BLOCK);
+		}
+
+		/* The new map is ok, free the first one, write the second one */
+		write_map (pInode, iOffSet, NO_ZONE, WMAP_FREE);
+		write_map (pInode, iOffSet, iNewLocation, 0);
+
+		/* go next */
+		iOffSet += pInode->i_sp->s_block_size * iNBlocksZone;
+	}
+
+	/* Not sure that it's needed but we move bits, tables are not updated... done in fs_sync */
+	flushall (pBufNew->b_dev);
 
 	return OK;
 }
@@ -290,7 +334,7 @@ PUBLIC int fs_defrag()
 
 	/* Get the right inode if available */
 	pInode = get_inode (fs_dev, (ino_t)fs_m_in.REQ_INODE_NR);
-	if (!pInode)
+	if (! pInode)
 		return EINVAL;
 
 	/* we need the size of the zone: link between the block and the zone
