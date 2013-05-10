@@ -1188,7 +1188,7 @@ ino_t inode_nr;
   int r;
   message m;
 
-  /** TODO: check: usefull? */
+  /* check grand by security (see req_unlink) */
   grant_id = cpf_grant_direct(fs_e, (vir_bytes) &sb, sizeof(int), CPF_WRITE);
   if (grant_id < 0)
         panic("req_defrag: cpf_grant_* failed");
@@ -1232,7 +1232,7 @@ int* iNFrags;
 
   /* Send/rec request */
   r = fs_sendrec(fs_e, &m);
-  *iNFrags = m.m9_s2; /** TODO: maybe took another one? **/
+  *iNFrags = m.m9_s2; /** maybe took another one? **/
   cpf_revoke(grant_id);
 
   return r;

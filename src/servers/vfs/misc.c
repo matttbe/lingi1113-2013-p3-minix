@@ -668,10 +668,8 @@ PUBLIC int do_defrag()
 
 	/* check if we have to defrag this file */
 	iReturn = req_nfrags(v_fs_e, v_inode_nr, &iNFrags);
-	if (iReturn == OK && iNFrags > 1) {
-		printf ("We need to defrag it: %d\n", iNFrags); /** TODO: REMOVE!! */
+	if (iReturn == OK && iNFrags > 1)
 		iReturn = req_defrag(v_fs_e, v_inode_nr);
-	}
 
 	if (iReturn != OK)
 		return iReturn;

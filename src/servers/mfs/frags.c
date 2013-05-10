@@ -342,7 +342,7 @@ PUBLIC int fs_defrag()
 	   --> read_map from read.c */
 	iZoneSize = (1 << pInode->i_sp->s_log_zone_size) * pInode->i_sp->s_block_size;
 	iNZones = pInode->i_size / iZoneSize;
-	
+
 	/* we need to find somewhere to place the new file */
 	iReturn = get_free_zone_start (pInode->i_sp, iNZones, &iFreeZoneStart);
 	if (iReturn != OK)
@@ -350,8 +350,6 @@ PUBLIC int fs_defrag()
 		put_inode (pInode); /* release the inode */
 		return iReturn;
 	}
-
-	printf ("Find a zone: %d\n", iFreeZoneStart); /** TODO: remove */
 
 	/* We have a zone, reserve this space */
 	iReturn = reserve_zone (pInode->i_sp, iFreeZoneStart, iNZones);
@@ -361,8 +359,6 @@ PUBLIC int fs_defrag()
 		return iReturn;
 	}
 
-	printf ("Zone reserved\n"); /** TODO: remove */
-
 	/* Move bits and update all things linked to the inode */
 	iReturn = move_bits_full (pInode, iFreeZoneStart, iNZones);
 	if (iReturn != OK)
@@ -370,8 +366,6 @@ PUBLIC int fs_defrag()
 		put_inode (pInode); /* release the inode */
 		return iReturn;
 	}
-
-	printf ("Zone bit moved\n"); /** TODO: remove */
 
 	put_inode (pInode); /* release the inode */
 
