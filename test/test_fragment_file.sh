@@ -17,7 +17,11 @@ else
 fi
 
 echo "Create test file: $TEST_FILE"
-dd if=/dev/urandom of=$TEST_FILE count=10 ibs=4096 obs=4096 bs=4096
+if test -n "$1"; then
+	dd if=/dev/urandom of=$TEST_FILE count=10 bs=$1
+else
+	dd if=/dev/urandom of=$TEST_FILE count=10 ibs=4096 obs=4096 bs=4096
+fi
 
 echo "Fragment this file"
 cp $TEST_FILE $TMP_FILE0
