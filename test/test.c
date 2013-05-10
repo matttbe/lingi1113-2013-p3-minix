@@ -51,7 +51,7 @@ static test_wrong_file_dir (int bNFrags)
 	assert (iReturn == -1);
 	assert (errno == EFTYPE);
 
-	printf ("\tReturn: %d (espected: %d), error: %d (espected: %d)\n",
+	printf ("\tReturn: %d (expected: %d), error: %d (expected: %d)\n",
 		iReturn, -1, errno, EFTYPE);
 }
 
@@ -68,7 +68,7 @@ static test_wrong_file_unavailable (int bNFrags)
 	assert (iReturn == -1);
 	assert (errno == ENOENT); /* no such file or directory */
 
-	printf ("\tReturn: %d (espected: %d), error: %d (espected: %d)\n",
+	printf ("\tReturn: %d (expected: %d), error: %d (expected: %d)\n",
 		iReturn, -1, errno, ENOENT);
 }
 
@@ -93,7 +93,7 @@ static test_file_busy (int bNFrags)
 		assert (errno == EBUSY);
 	}
 
-	printf ("\tReturn: %d (espected: %d), error: %d (espected: %d)\n",
+	printf ("\tReturn: %d (expected: %d), error: %d (expected: %d)\n",
 		iReturn, bNFrags ? iReturn : -1,
 		bNFrags ? 0 : errno, bNFrags ? 0 : EBUSY);
 
