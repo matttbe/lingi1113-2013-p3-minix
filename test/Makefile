@@ -12,7 +12,7 @@ all: $(SOURCES_BASH) $(OUT)
 	./$(OUT)
 
 big: $(SOURCES_BASH) $(OUT)
-	bash $(SOURCES_BASH) 10000
+	bash $(SOURCES_BASH) 131072
 	./$(OUT)
 
 %.o: %.c

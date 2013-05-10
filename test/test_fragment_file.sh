@@ -18,6 +18,7 @@ fi
 
 echo "Create test file: $TEST_FILE"
 if test -n "$1"; then
+	echo "Create big file: $1"
 	dd if=/dev/urandom of=$TEST_FILE count=10 bs=$1
 else
 	dd if=/dev/urandom of=$TEST_FILE count=10 ibs=4096 obs=4096 bs=4096
