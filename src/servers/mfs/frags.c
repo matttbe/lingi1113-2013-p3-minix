@@ -363,14 +363,14 @@ PUBLIC int fs_defrag()
 	printf ("Zone reserved\n"); /** TODO: remove */
 
 	/* Move bits and update all things linked to the inode */
-	iReturn = move_bits_full (iNZones, pInode, iFreeZoneStart);
+	iReturn = move_bits_full (pInode, iFreeZoneStart, iNZones);
 	if (iReturn != OK)
 	{
 		put_inode (pInode); /* release the inode */
 		return iReturn;
 	}
 
-	printf ("Zone reserved\n"); /** TODO: remove */
+	printf ("Zone bit moved\n"); /** TODO: remove */
 
 	put_inode (pInode); /* release the inode */
 
