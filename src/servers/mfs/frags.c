@@ -124,7 +124,7 @@ PRIVATE int get_free_zone_start (pSuperBlock, iNZones, iFreeZoneStart)
 	if (pSuperBlock->s_zsearch >= iNBitsMap)
 		return ENOSPC; /* no space left on device */
  
-	/* get start block and word (also used in super.c:free_bit) */  
+	/* get start block and word (also used in super.c:free_bit) */
 	uNewStartBlock = pSuperBlock->s_zsearch / FS_BITS_PER_BLOCK(pSuperBlock->s_block_size);
 	uNewStartWord = (pSuperBlock->s_zsearch % FS_BITS_PER_BLOCK(pSuperBlock->s_block_size)) / FS_BITCHUNK_BITS;
 
@@ -137,10 +137,10 @@ PRIVATE int get_free_zone_start (pSuperBlock, iNZones, iFreeZoneStart)
 		pWordLimit = &pBuf->b_bitmap[FS_BITMAP_CHUNKS(pSuperBlock->s_block_size)];
 	
 		/* Iterate over the words in block. */
-		for(pCurrWord = &pBuf->b_bitmap[uNewStartWord]; pCurrWord < pWordLimit; pCurrWord++)
+		for (pCurrWord = &pBuf->b_bitmap[uNewStartWord]; pCurrWord < pWordLimit; pCurrWord++)
 		{
 			/* Does this word contain a free bit? */
-			if(*pCurrWord == (bitchunk_t) ~0) 
+			if (*pCurrWord == (bitchunk_t) ~0)
 			{
 				iNFreeBits = 0;
 				continue;
@@ -194,10 +194,83 @@ PRIVATE int reserve_zone(pSuperBlock, iFreeZoneStart, iNZones)
 		 bit_t iFreeZoneStart;
 		 int iNZones;
 {
+	block_t iStartBlock;
+	bit_t iNBitsMap, i, iBitId;
+	unsigned uNBlockMap, uNewStartBlock, uNewStartWord;
+	int iNFreeBits;
+	struct buf *pBuf;
+	bitchunk_t *pCurrWord, *pWordLimit, pCurrWordConverted;
 
+
+	/* read-only file system */
+	if (pSuperBlock->s_rd_only)
+		return EROFS;
+
+	/* from super.c ; considered we have a zmap */
+	iStartBlock = START_BLOCK + pSuperBlock->s_imap_blocks; /* for imap: only start_block */
+	iNBitsMap = pSuperBlock->s_zones - pSuperBlock->s_firstdatazone - 1;
+	uNBlockMap = pSuperBlock->s_zmap_blocks;
+
+	if (iFreeZoneStart >= iNBitsMap)
+		return ENOSPC; /* no space left on device */
+
+	/* get start block and word (also used in super.c:free_bit) */
+	uNewStartBlock = iFreeZoneStart / FS_BITS_PER_BLOCK (pSuperBlock->s_block_size);
+	uNewStartWord = (iFreeZoneStart % FS_BITS_PER_BLOCK (pSuperBlock->s_block_size)) / FS_BITCHUNK_BITS;
+
+	i = iFreeZoneStart % FS_BITCHUNK_BITS;
+	iNFreeBits = 0;
+	while(uNewStartBlock < uNBlockMap)
+	{
+		/* Get the current block (super.c:free_bit) */
+		pBuf = get_block (pSuperBlock->s_dev, iStartBlock + uNewStartBlock, NORMAL);
+		pWordLimit = &pBuf->b_bitmap[FS_BITMAP_CHUNKS(pSuperBlock->s_block_size)];
+
+		/* Iterate over the words in block. */
+		for (pCurrWord = &pBuf->b_bitmap[uNewStartWord]; pCurrWord < pWordLimit; pCurrWord++)
+		{
+			/* Does this word contain a free bit? */
+			if (*pCurrWord == (bitchunk_t) ~0) { /* word already full */
+				put_block (pBuf, MAP_BLOCK);
+				return EBUSY;
+			}
+
+			/* Find and allocate the free bit. */
+			pCurrWordConverted = conv2 (pSuperBlock->s_native, (int) *pCurrWord);
+
+			while(i < FS_BITCHUNK_BITS)
+			{
+				if ((pCurrWordConverted & (1 << i)) == 0)
+				{
+					pCurrWordConverted |= 1 << i;
+					*pCurrWord = conv2 (pSuperBlock->s_native, (int) pCurrWordConverted);
+					pBuf->b_dirt = DIRTY; /* used !*/
+					iNFreeBits++;
+
+					if (iNFreeBits == iNZones) /* all is reserved */
+					{
+						put_block (pBuf, MAP_BLOCK);
+						return OK;
+					}
+				}
+				/* One bit is already used (should not happen) */
+				else
+					return EBUSY;
+				i++;
+			}
+			i = 0;
+		}
+
+		put_block (pBuf, MAP_BLOCK); /* release it */
+		uNewStartWord = 0;
+		uNewStartBlock++;
+	}
 
 	return OK;
 }
+
+
+
 
 PRIVATE int move_bits_full(pInode, iFreeZoneStart, iNZones)
 		 struct inode *pInode;
