@@ -13,7 +13,8 @@ all: $(SOURCES_BASH) $(OUT)
 
 big: $(SOURCES_BASH) $(OUT)
 	bash $(SOURCES_BASH) 10000
-	./$(OUT) | less
+	./$(OUT) > out.log
+	@echo stdout available in out.log file
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
