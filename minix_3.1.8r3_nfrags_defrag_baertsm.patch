@@ -1,0 +1,882 @@
+diff -urN --exclude .svn --exclude '*~' ./src_orig/include/defrag.h ./src/include/defrag.h
+--- ./src_orig/include/defrag.h	1970-01-01 01:00:00.000000000 +0100
++++ ./src/include/defrag.h	2013-05-15 11:41:07.000000000 +0200
+@@ -0,0 +1,8 @@
++#ifndef _DEFRAG_H_
++#define _DEFRAG_H_
++
++#include <stdlib.h>
++
++_PROTOTYPE( int defrag, (const char *cPathFile));
++
++#endif
+diff -urN --exclude .svn --exclude '*~' ./src_orig/include/Makefile ./src/include/Makefile
+--- ./src_orig/include/Makefile	2010-09-02 17:44:04.000000000 +0200
++++ ./src/include/Makefile	2013-05-15 11:41:06.000000000 +0200
+@@ -1,10 +1,10 @@
+ # Doing a make includes builds /usr/include
+ 
+ INCS=	alloca.h ansi.h a.out.h ar.h assert.h configfile.h ctype.h \
+-	curses.h dirent.h env.h err.h errno.h fcntl.h fenv.h \
++	curses.h defrag.h dirent.h env.h err.h errno.h fcntl.h fenv.h \
+ 	float.h fnmatch.h fts.h getopt.h glob.h grp.h ifaddrs.h \
+ 	inttypes.h libgen.h lib.h libutil.h limits.h locale.h \
+-	mathconst.h math.h midiparser.h netdb.h pwd.h regex.h \
++	mathconst.h math.h midiparser.h netdb.h nfrags.h pwd.h regex.h \
+ 	regexp.h setjmp.h sgtty.h signal.h stdarg.h stddef.h \
+ 	stdint.h stdbool.h stdio.h stdlib.h string.h strings.h sysexits.h \
+ 	syslog.h tar.h termcap.h termios.h time.h timers.h tools.h \
+diff -urN --exclude .svn --exclude '*~' ./src_orig/include/minix/callnr.h ./src/include/minix/callnr.h
+--- ./src_orig/include/minix/callnr.h	2010-08-25 15:06:43.000000000 +0200
++++ ./src/include/minix/callnr.h	2013-05-15 11:41:07.000000000 +0200
+@@ -1,4 +1,6 @@
+-#define NCALLS		 113	/* number of system calls allowed */
++/* Defrag: begin modif */
++#define NCALLS		 115	/* number of system calls allowed */
++/* Defrag: end modif */
+ 
+ #define EXIT		   1 
+ #define FORK		   2 
+@@ -115,6 +117,11 @@
+ 
+ #define GCOV_FLUSH	112	/* flush gcov data from server to gcov files */
+ 
++/* Defrag: begin modif */
++#define DEFRAG		113 /* to VFS: defrag a file */
++#define NFRAGS		114 /* to VFS: nb of fragments in a file */
++/* Defrag: end modif */
++
+ #define TASK_REPLY	121	/* to VFS: reply code from drivers, not 
+ 				 * really a standalone call.
+ 				 */
+diff -urN --exclude .svn --exclude '*~' ./src_orig/include/minix/vfsif.h ./src/include/minix/vfsif.h
+--- ./src_orig/include/minix/vfsif.h	2010-08-30 15:41:22.000000000 +0200
++++ ./src/include/minix/vfsif.h	2013-05-15 11:41:08.000000000 +0200
+@@ -114,8 +114,12 @@
+ #define REQ_RDLINK	(VFS_BASE + 30)
+ #define REQ_GETDENTS	(VFS_BASE + 31)
+ #define REQ_STATVFS		(VFS_BASE + 32)
++/* Defrag: begin modif */
++#define REQ_DEFRAG		(VFS_BASE + 33)
++#define REQ_NFRAGS		(VFS_BASE + 34)
+ 
+-#define NREQS                   33
++#define NREQS                   35
++/* Defrag: end modif */
+ 
+ #define IS_VFS_RQ(type) (((type) & ~0xff) == VFS_BASE)
+ 
+diff -urN --exclude .svn --exclude '*~' ./src_orig/include/nfrags.h ./src/include/nfrags.h
+--- ./src_orig/include/nfrags.h	1970-01-01 01:00:00.000000000 +0100
++++ ./src/include/nfrags.h	2013-05-15 11:41:08.000000000 +0200
+@@ -0,0 +1,9 @@
++#ifndef _NFRAGS_H_
++#define _NFRAGS_H_
++
++#include <stdlib.h>
++
++_PROTOTYPE( int nfrags, (const char *cPathFile));
++
++#endif /* _NFRAGS_H_ */
++
+diff -urN --exclude .svn --exclude '*~' ./src_orig/lib/libc/other/_defrag.c ./src/lib/libc/other/_defrag.c
+--- ./src_orig/lib/libc/other/_defrag.c	1970-01-01 01:00:00.000000000 +0100
++++ ./src/lib/libc/other/_defrag.c	2013-05-15 11:41:15.000000000 +0200
+@@ -0,0 +1,20 @@
++#include <lib.h>
++#include <unistd.h>
++
++PUBLIC int defrag(cFilePath)
++const char *cFilePath;
++{
++  message m;
++  int r;
++
++  /* This function is used to load a string into a type m3 message. If the
++   * string fits in the message, it is copied there.  If not, a pointer to
++   * it is passed. => loadname.c (e.g. posix/_unlink.c)
++   */
++  _loadname(cFilePath, &m);
++
++  r = _syscall(VFS_PROC_NR, DEFRAG, &m);
++  if (r < 0)
++	return -1; /* We want -1 if there is an error */
++  return r;
++}
+diff -urN --exclude .svn --exclude '*~' ./src_orig/lib/libc/other/Makefile.inc ./src/lib/libc/other/Makefile.inc
+--- ./src_orig/lib/libc/other/Makefile.inc	2010-08-25 15:06:43.000000000 +0200
++++ ./src/lib/libc/other/Makefile.inc	2013-05-15 11:41:15.000000000 +0200
+@@ -9,6 +9,7 @@
+ 	_adddma.c \
+ 	_brk.c \
+ 	_cprofile.c \
++	_defrag.c \
+ 	_deldma.c \
+ 	_getdents.c \
+ 	_getdma.c \
+@@ -25,6 +26,7 @@
+ 	_mapdriver.c \
+ 	_mcontext.c \
+ 	_mount.c \
++	_nfrags.c \
+ 	_reboot.c \
+ 	_sbrk.c \
+ 	_seekdir.c \
+diff -urN --exclude .svn --exclude '*~' ./src_orig/lib/libc/other/_nfrags.c ./src/lib/libc/other/_nfrags.c
+--- ./src_orig/lib/libc/other/_nfrags.c	1970-01-01 01:00:00.000000000 +0100
++++ ./src/lib/libc/other/_nfrags.c	2013-05-15 11:41:15.000000000 +0200
+@@ -0,0 +1,20 @@
++#include <lib.h>
++#include <unistd.h>
++
++PUBLIC int nfrags(cFilePath)
++const char *cFilePath;
++{
++  message m;
++  int r;
++
++  /* This function is used to load a string into a type m3 message. If the
++   * string fits in the message, it is copied there.  If not, a pointer to
++   * it is passed. => loadname.c (e.g. posix/_unlink.c)
++   */
++  _loadname(cFilePath, &m);
++
++  r = _syscall(VFS_PROC_NR, NFRAGS, &m);
++  if (r < 0)
++	return -1; /* we want -1 if there is an error */
++  return r;
++}
+diff -urN --exclude .svn --exclude '*~' ./src_orig/lib/libc/syscall/defrag.S ./src/lib/libc/syscall/defrag.S
+--- ./src_orig/lib/libc/syscall/defrag.S	1970-01-01 01:00:00.000000000 +0100
++++ ./src/lib/libc/syscall/defrag.S	2013-05-15 11:41:18.000000000 +0200
+@@ -0,0 +1,6 @@
++#include <machine/asm.h>
++
++IMPORT(_defrag)
++ENTRY(defrag)
++	jmp	_C_LABEL(_defrag)
++
+diff -urN --exclude .svn --exclude '*~' ./src_orig/lib/libc/syscall/Makefile.inc ./src/lib/libc/syscall/Makefile.inc
+--- ./src_orig/lib/libc/syscall/Makefile.inc	2010-07-15 15:24:57.000000000 +0200
++++ ./src/lib/libc/syscall/Makefile.inc	2013-05-15 11:41:18.000000000 +0200
+@@ -21,6 +21,7 @@
+ 	cprofile.S \
+ 	creat.S \
+ 	deldma.S \
++	defrag.S \
+ 	dup.S \
+ 	dup2.S \
+ 	execl.S \
+@@ -82,6 +83,7 @@
+ 	vm_query_exit.S \
+ 	mount.S \
+ 	nanosleep.S \
++	nfrags.S \
+ 	open.S \
+ 	opendir.S \
+ 	pathconf.S \
+diff -urN --exclude .svn --exclude '*~' ./src_orig/lib/libc/syscall/nfrags.S ./src/lib/libc/syscall/nfrags.S
+--- ./src_orig/lib/libc/syscall/nfrags.S	1970-01-01 01:00:00.000000000 +0100
++++ ./src/lib/libc/syscall/nfrags.S	2013-05-15 11:41:18.000000000 +0200
+@@ -0,0 +1,6 @@
++#include <machine/asm.h>
++
++IMPORT(_nfrags)
++ENTRY(nfrags)
++	jmp	_C_LABEL(_nfrags)
++
+diff -urN --exclude .svn --exclude '*~' ./src_orig/lib/libvtreefs/table.c ./src/lib/libvtreefs/table.c
+--- ./src_orig/lib/libvtreefs/table.c	2010-08-10 22:05:51.000000000 +0200
++++ ./src/lib/libvtreefs/table.c	2013-05-15 11:41:22.000000000 +0200
+@@ -37,6 +37,8 @@
+ 	fs_rdlink,	/* 30	rdlink		*/
+ 	fs_getdents,	/* 31	getdents	*/
+ 	fs_statvfs,	/* 32	statvfs		*/
++	no_sys,		/* 33	defrag: not used	*/
++	no_sys,		/* 34	nfrags: not used	*/
+ };
+ 
+ /* This should not fail with "array size is negative": */
+diff -urN --exclude .svn --exclude '*~' ./src_orig/servers/ext2/table.c ./src/servers/ext2/table.c
+--- ./src_orig/servers/ext2/table.c	2010-08-02 13:44:45.000000000 +0200
++++ ./src/servers/ext2/table.c	2013-05-15 11:41:28.000000000 +0200
+@@ -47,4 +47,6 @@
+     fs_rdlink,          /* 30  */
+     fs_getdents,        /* 31  */
+     fs_statvfs,		/* 32  */
++    no_sys,         /* 33: defrag: not used */
++    no_sys,         /* 34: nfrags: not used */
+ };
+diff -urN --exclude .svn --exclude '*~' ./src_orig/servers/hgfs/table.c ./src/servers/hgfs/table.c
+--- ./src_orig/servers/hgfs/table.c	2010-06-27 19:19:50.000000000 +0200
++++ ./src/servers/hgfs/table.c	2013-05-15 11:41:28.000000000 +0200
+@@ -41,6 +41,8 @@
+ 	no_sys,		/* 30 rdlink		*/
+ 	do_getdents,	/* 31 getdents		*/
+ 	do_statvfs,	/* 32 statvfs		*/
++    no_sys,		/* 33: defrag: not used */
++    no_sys,		/* 34: nfrags: not used */
+ };
+ 
+ /* This should not fail with "array size is negative": */
+diff -urN --exclude .svn --exclude '*~' ./src_orig/servers/iso9660fs/table.c ./src/servers/iso9660fs/table.c
+--- ./src_orig/servers/iso9660fs/table.c	2010-06-24 01:57:26.000000000 +0200
++++ ./src/servers/iso9660fs/table.c	2013-05-15 11:41:29.000000000 +0200
+@@ -41,4 +41,6 @@
+   no_sys,			/* 53: not used */
+   fs_getdents,			/* 54 */
+   fs_statvfs,     /* 32 */
++  no_sys,			/* 33: defrag: not used */
++  no_sys,			/* 34: nfrags: not used */
+ };
+diff -urN --exclude .svn --exclude '*~' ./src_orig/servers/mfs/frags.c ./src/servers/mfs/frags.c
+--- ./src_orig/servers/mfs/frags.c	1970-01-01 01:00:00.000000000 +0100
++++ ./src/servers/mfs/frags.c	2013-05-15 11:41:29.000000000 +0200
+@@ -0,0 +1,376 @@
++/*
++ * Project P3
++ * 
++ * Copyright 2013 UCLouvain / pole INGI
++ *
++ * Authors:
++ *   Matthieu Baerts <matthieu.baerts@student.uclouvain.be>
++ *   Helene Verhaeghe <helene.verhaeghe@student.uclouvain.be>
++ * 
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 3 of the License, or
++ * (at your option) any later version.
++ * 
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ * 
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
++ * MA 02110-1301, USA.
++ * 
++ */
++
++#include "fs.h"
++#include "buf.h"
++#include "inode.h"
++#include "super.h"
++#include "proto.h"
++#include <errno.h>
++#include <sys/stat.h>
++#include <sys/types.h>
++#include <minix/vfsif.h>
++#include <stdio.h>
++
++PRIVATE int get_nb_fragments(pInode)
++register struct inode *pInode;
++{
++	int iNFrags; /* result */
++	off_t iPos;  /* current position */
++	block_t pCurrBlock, pPrevBlock;
++
++	iNFrags = 0;
++
++	printf ("|");
++
++	/* Init */
++	pPrevBlock = read_map (pInode, 0);
++
++	for (iPos = 0 ; iPos < pInode->i_size ; iPos += pInode->i_sp->s_block_size)
++	{
++		pCurrBlock = read_map (pInode, iPos);
++		if (pCurrBlock != pPrevBlock)
++		{
++			/* if the current block is distant of 2 to the previous, we have a fragment */
++			if (pCurrBlock - pPrevBlock > 1
++				|| pCurrBlock - pPrevBlock < 0) /* can be negative? */
++			{
++				iNFrags++;
++				printf (" ");
++			}
++			else
++				printf ("*");
++		}
++		else
++			printf ("^"); /* we are here at startup (or disk error?)*/
++		pPrevBlock = pCurrBlock;
++	}
++
++	printf ("|\n");
++
++	return iNFrags;
++}
++
++PUBLIC int fs_nfrags()
++{
++	register struct inode *pInode;
++	int iNFrags;
++
++	/* Get the right inode if available */
++	pInode = get_inode (fs_dev, (ino_t)fs_m_in.REQ_INODE_NR);
++	if (! pInode)
++		return EINVAL; /* invalid argument */
++
++	iNFrags = get_nb_fragments (pInode);
++
++	put_inode (pInode); /* will free the inode, etc. */
++
++	fs_m_out.m9_s2 = iNFrags;
++
++	return OK;
++}
++
++/* ******************** *
++ * Functions for Defrag *
++ * ******************** */
++
++/*
++ * check if there is a zone where iNZones consecutive bits are available.
++ * inspired by super.c:alloc_bit (but rename variables... hard to have shorter name...
++ */
++PRIVATE int get_free_zone_start (pSuperBlock, iNZones, iFreeZoneStart)
++struct super_block* pSuperBlock;
++int iNZones;
++bit_t *iFreeZoneStart;
++{
++	block_t iStartBlock;
++	bit_t iNBitsMap, i, iBitId;
++	unsigned uNBlockMap, uNewStartBlock, uNewStartWord;
++	int iNFreeBits;
++	struct buf *pBuf;
++	bitchunk_t *pCurrWord, *pWordLimit, pCurrWordConverted;
++
++	/* read-only file system */
++	if (pSuperBlock->s_rd_only)
++		return EROFS;
++
++	/* from super.c ; considered we have a zmap */
++	iStartBlock = START_BLOCK + pSuperBlock->s_imap_blocks; /* for imap: only start_block */
++	iNBitsMap = pSuperBlock->s_zones - pSuperBlock->s_firstdatazone - 1;
++	uNBlockMap = pSuperBlock->s_zmap_blocks;
++
++	if (pSuperBlock->s_zsearch >= iNBitsMap)
++		return ENOSPC; /* no space left on device */
++ 
++	/* get start block and word (also used in super.c:free_bit) */
++	uNewStartBlock = pSuperBlock->s_zsearch / FS_BITS_PER_BLOCK(pSuperBlock->s_block_size);
++	uNewStartWord = (pSuperBlock->s_zsearch % FS_BITS_PER_BLOCK(pSuperBlock->s_block_size)) / FS_BITCHUNK_BITS;
++
++	iNFreeBits = 0;
++	/* Iterate the all block */ 
++	while (uNewStartBlock < uNBlockMap)
++	{
++		/* Get the current block (super.c:free_bit) */
++		pBuf = get_block (pSuperBlock->s_dev, iStartBlock + uNewStartBlock, NORMAL);
++		pWordLimit = &pBuf->b_bitmap[FS_BITMAP_CHUNKS(pSuperBlock->s_block_size)];
++	
++		/* Iterate over the words in block. */
++		for (pCurrWord = &pBuf->b_bitmap[uNewStartWord]; pCurrWord < pWordLimit; pCurrWord++)
++		{
++			/* Does this word contain a free bit? */
++			if (*pCurrWord == (bitchunk_t) ~0)
++			{
++				iNFreeBits = 0;
++				continue;
++			}
++			
++			/* Find and allocate the free bit. */
++			/* Possibly swap a 16-bit word between 8086 and 68000 byte order. */
++			pCurrWordConverted = conv2 (pSuperBlock->s_native, (int) *pCurrWord);
++			for (i = 0; i < FS_BITCHUNK_BITS; i++) 
++			{
++				if((pCurrWordConverted & (1 << i)) == 0)
++				{
++					iNFreeBits++;
++					if(iNFreeBits == iNZones) /* size enough */
++						break;
++				}
++				else
++					iNFreeBits = 0;
++			}
++
++			if(iNFreeBits == iNZones)
++			{
++				/* Bit number from the start of the bit map. */
++				iBitId = ((bit_t) uNewStartBlock * FS_BITS_PER_BLOCK(pSuperBlock->s_block_size))
++						+ (pCurrWord - &pBuf->b_bitmap[0]) * FS_BITCHUNK_BITS
++						+ i;
++
++				/* Don't allocate bits beyond the end of the map: oversize */
++				if (iBitId >= iNBitsMap)
++					break;
++
++				/* We found it!: release block and fill in iFreeZoneStart */
++				put_block (pBuf, MAP_BLOCK);
++				*iFreeZoneStart = iBitId - (iNZones-1);
++				return OK;
++			}
++		}
++		put_block (pBuf, MAP_BLOCK);
++
++		uNewStartWord = 0;
++		uNewStartBlock++;
++	}
++ 
++	return ENOSPC;
++}
++
++
++
++PRIVATE int reserve_zone(pSuperBlock, iFreeZoneStart, iNZones)
++struct super_block* pSuperBlock;
++bit_t iFreeZoneStart;
++int iNZones;
++{
++	block_t iStartBlock;
++	bit_t iNBitsMap, i, iBitId;
++	unsigned uNBlockMap, uNewStartBlock, uNewStartWord;
++	int iNFreeBits;
++	struct buf *pBuf;
++	bitchunk_t *pCurrWord, *pWordLimit, pCurrWordConverted;
++
++
++	/* read-only file system */
++	if (pSuperBlock->s_rd_only)
++		return EROFS;
++
++	/* from super.c ; considered we have a zmap */
++	iStartBlock = START_BLOCK + pSuperBlock->s_imap_blocks; /* for imap: only start_block */
++	iNBitsMap = pSuperBlock->s_zones - pSuperBlock->s_firstdatazone - 1;
++	uNBlockMap = pSuperBlock->s_zmap_blocks;
++
++	if (iFreeZoneStart >= iNBitsMap)
++		return ENOSPC; /* no space left on device */
++
++	/* get start block and word (also used in super.c:free_bit) */
++	uNewStartBlock = iFreeZoneStart / FS_BITS_PER_BLOCK (pSuperBlock->s_block_size);
++	uNewStartWord = (iFreeZoneStart % FS_BITS_PER_BLOCK (pSuperBlock->s_block_size)) / FS_BITCHUNK_BITS;
++
++	i = iFreeZoneStart % FS_BITCHUNK_BITS;
++	iNFreeBits = 0;
++	while (uNewStartBlock < uNBlockMap)
++	{
++		/* Get the current block (super.c:free_bit) */
++		pBuf = get_block (pSuperBlock->s_dev, iStartBlock + uNewStartBlock, NORMAL);
++		pWordLimit = &pBuf->b_bitmap[FS_BITMAP_CHUNKS(pSuperBlock->s_block_size)];
++
++		/* Iterate over the words in block. */
++		for (pCurrWord = &pBuf->b_bitmap[uNewStartWord]; pCurrWord < pWordLimit; pCurrWord++)
++		{
++			/* Does this word contain a free bit? */
++			if (*pCurrWord == (bitchunk_t) ~0) { /* word already full */
++				put_block (pBuf, MAP_BLOCK);
++				return EBUSY;
++			}
++
++			/* Find and allocate the free bit. */
++			pCurrWordConverted = conv2 (pSuperBlock->s_native, (int) *pCurrWord);
++
++			while(i < FS_BITCHUNK_BITS)
++			{
++				if ((pCurrWordConverted & (1 << i)) == 0)
++				{
++					pCurrWordConverted |= 1 << i;
++					*pCurrWord = conv2 (pSuperBlock->s_native, (int) pCurrWordConverted);
++					pBuf->b_dirt = DIRTY; /* used !*/
++					iNFreeBits++;
++
++					if (iNFreeBits == iNZones) /* all is reserved */
++					{
++						put_block (pBuf, MAP_BLOCK);
++						return OK;
++					}
++				}
++				/* One bit is already used (should not happen) */
++				else
++					return EBUSY;
++				i++;
++			}
++			i = 0;
++		}
++
++		put_block (pBuf, MAP_BLOCK); /* release it */
++		uNewStartWord = 0;
++		uNewStartBlock++;
++	}
++
++	return OK;
++}
++
++
++
++
++PRIVATE int move_bits_full(pInode, iFreeZoneStart, iNZones)
++struct inode *pInode;
++bit_t iFreeZoneStart;
++int iNZones;
++{
++	int iNBlocksZone, iNZonesChanged, i, iNewLocation;
++	block_t iCurrBlock;
++	struct buf *pBufOld, *pBufNew;
++	off_t iOffSet;
++
++	iOffSet = 0;
++	/* get number of blocks per zone in the superblock */
++	iNBlocksZone = (1 << pInode->i_sp->s_log_zone_size);
++
++	/* Iterations sur le nombre de zones du fichier */
++	for (iNZonesChanged = 0; iNZonesChanged < iNZones; iNZonesChanged++)
++	{
++		/* Get current block from the map -> read.c */
++		iCurrBlock = read_map (pInode, iOffSet);
++		iNewLocation = (pInode->i_sp->s_firstdatazone - 1)
++		                + iFreeZoneStart + iNZonesChanged;
++
++		/* get all blocks for the zone and move them on the new allocated zone */
++		for (i = 0; i < iNBlocksZone; i++)
++		{
++			/* We can move blocks: get blocks */
++			pBufOld = get_block (pInode->i_dev, iCurrBlock + i, NORMAL);
++			pBufNew = get_block (pInode->i_dev, iNewLocation * iNBlocksZone + i, NORMAL);
++
++			/* copy the content of the buffers */
++			memcpy (pBufNew->b_data, pBufOld->b_data, pInode->i_sp->s_block_size);
++
++			/* busy buf */
++			pBufNew->b_dirt = DIRTY;
++
++			/* release them */
++			put_block (pBufOld, FULL_DATA_BLOCK);
++			put_block (pBufNew, FULL_DATA_BLOCK);
++		}
++
++		/* The new map is ok, free the first one, write the second one */
++		write_map (pInode, iOffSet, NO_ZONE, WMAP_FREE);
++		write_map (pInode, iOffSet, iNewLocation, 0);
++
++		/* go next */
++		iOffSet += pInode->i_sp->s_block_size * iNBlocksZone;
++	}
++
++	/* Not sure that it's needed but we move bits, tables are not updated... done in fs_sync */
++	flushall (pBufNew->b_dev);
++
++	return OK;
++}
++
++PUBLIC int fs_defrag()
++{
++	int iZoneSize, iNZones, iReturn;
++	struct inode *pInode;
++	bit_t iFreeZoneStart;
++
++	/* Get the right inode if available */
++	pInode = get_inode (fs_dev, (ino_t)fs_m_in.REQ_INODE_NR);
++	if (! pInode)
++		return EINVAL; /* invalid argument */
++
++	/* we need the size of the zone: link between the block and the zone
++	   --> read_map from read.c */
++	iZoneSize = (1 << pInode->i_sp->s_log_zone_size) * pInode->i_sp->s_block_size;
++	iNZones = pInode->i_size / iZoneSize;
++
++	/* we need to find somewhere to place the new file */
++	iReturn = get_free_zone_start (pInode->i_sp, iNZones, &iFreeZoneStart);
++	if (iReturn != OK)
++	{
++		put_inode (pInode); /* release the inode */
++		return iReturn;
++	}
++
++	/* We have a zone, reserve this space */
++	iReturn = reserve_zone (pInode->i_sp, iFreeZoneStart, iNZones);
++	if (iReturn != OK)
++	{
++		put_inode (pInode); /* release the inode */
++		return iReturn;
++	}
++
++	/* Move bits and update all things linked to the inode */
++	iReturn = move_bits_full (pInode, iFreeZoneStart, iNZones);
++	if (iReturn != OK)
++	{
++		put_inode (pInode); /* release the inode */
++		return iReturn;
++	}
++
++	put_inode (pInode); /* release the inode */
++
++	return OK;
++}
++
++
++
+diff -urN --exclude .svn --exclude '*~' ./src_orig/servers/mfs/Makefile ./src/servers/mfs/Makefile
+--- ./src_orig/servers/mfs/Makefile	2010-06-25 20:29:09.000000000 +0200
++++ ./src/servers/mfs/Makefile	2013-05-15 11:41:29.000000000 +0200
+@@ -1,6 +1,6 @@
+ # Makefile for Minix File System (MFS)
+ PROG=	mfs
+-SRCS=	cache.c device.c link.c \
++SRCS=	cache.c device.c frags.c link.c \
+ 	mount.c misc.c open.c protect.c read.c \
+ 	stadir.c stats.c table.c time.c utility.c \
+ 	write.c inode.c main.c path.c super.c
+diff -urN --exclude .svn --exclude '*~' ./src_orig/servers/mfs/proto.h ./src/servers/mfs/proto.h
+--- ./src_orig/servers/mfs/proto.h	2010-06-24 01:58:16.000000000 +0200
++++ ./src/servers/mfs/proto.h	2013-05-15 11:41:29.000000000 +0200
+@@ -30,6 +30,10 @@
+ _PROTOTYPE( void dev_close, (endpoint_t driver_e, dev_t dev)		);
+ _PROTOTYPE( int fs_new_driver, (void)					);
+ 
++/* frags.c */
++_PROTOTYPE( int fs_defrag, (void)						);
++_PROTOTYPE( int fs_nfrags, (void)						);
++
+ /* inode.c */
+ _PROTOTYPE( struct inode *alloc_inode, (dev_t dev, mode_t bits)		);
+ _PROTOTYPE( void dup_inode, (struct inode *ip)				);
+diff -urN --exclude .svn --exclude '*~' ./src_orig/servers/mfs/table.c ./src/servers/mfs/table.c
+--- ./src_orig/servers/mfs/table.c	2010-06-24 01:58:16.000000000 +0200
++++ ./src/servers/mfs/table.c	2013-05-15 11:41:29.000000000 +0200
+@@ -45,5 +45,7 @@
+         fs_rdlink,	    /* 30  */
+         fs_getdents,	    /* 31  */
+         fs_statvfs,    /* 32 */
++        fs_defrag,          /* 33  */
++        fs_nfrags,          /* 34  */
+ };
+ 
+diff -urN --exclude .svn --exclude '*~' ./src_orig/servers/pfs/table.c ./src/servers/pfs/table.c
+--- ./src_orig/servers/pfs/table.c	2010-07-15 15:39:57.000000000 +0200
++++ ./src/servers/pfs/table.c	2013-05-15 11:41:30.000000000 +0200
+@@ -47,6 +47,8 @@
+         no_sys,	            /* 30  */
+         no_sys,	            /* 31  */
+ 	no_sys,             /* 32 */
++	no_sys,             /* 33 */
++	no_sys,             /* 34 */
+ };
+ 
+ /* Device Handlers (/dev/uds) */
+diff -urN --exclude .svn --exclude '*~' ./src_orig/servers/pm/table.c ./src/servers/pm/table.c
+--- ./src_orig/servers/pm/table.c	2010-08-25 15:06:43.000000000 +0200
++++ ./src/servers/pm/table.c	2013-05-15 11:41:30.000000000 +0200
+@@ -125,6 +125,8 @@
+ 	do_getdma,	/* 110 = getdma */
+ 	do_srv_kill,	/* 111 = srv_kill */
+  	no_sys, 	/* 112 = gcov_flush */
++	no_sys,		/* 113 = defrag */
++	no_sys, 	/* 114 = nfrags */
+ };
+ /* This should not fail with "array size is negative": */
+ extern int dummy[sizeof(call_vec) == NCALLS * sizeof(call_vec[0]) ? 1 : -1];
+diff -urN --exclude .svn --exclude '*~' ./src_orig/servers/vfs/misc.c ./src/servers/vfs/misc.c
+--- ./src_orig/servers/vfs/misc.c	2010-07-15 16:47:08.000000000 +0200
++++ ./src/servers/vfs/misc.c	2013-05-15 11:41:30.000000000 +0200
+@@ -16,12 +16,16 @@
+  *   do_svrctl:	  file system control
+  *   do_getsysinfo:	request copy of FS data structure
+  *   pm_dumpcore: create a core dump
++ *   do_defrag:	  defrag a file
++ *   do_nfrags:	  get the nb of fragments of a file
+  */
+ 
+ #include "fs.h"
+ #include <fcntl.h>
+ #include <assert.h>
+ #include <unistd.h>	/* cc runs out of memory with unistd.h :-( */
++#include <defrag.h>
++#include <nfrags.h>
+ #include <minix/callnr.h>
+ #include <minix/safecopies.h>
+ #include <minix/endpoint.h>
+@@ -626,3 +630,95 @@
+ 	dmap_endpt_up(owner_endpoint);
+ }
+ 
++/*===========================================================================*
++ *				 do_defrag				     *
++ *===========================================================================*/
++PUBLIC int do_defrag()
++{
++	int iReturn, iLength, iNFrags;
++	struct vnode *pVNode;
++	char *cFilePath;
++	endpoint_t v_fs_e; /* for req_nfrags and req_defrag */
++	ino_t v_inode_nr;
++
++	cFilePath = m_in.m3_p1;
++	iLength = m_in.m3_i1;
++
++	/* See if file exists: utilities.c: int fetch_name(path, len, flag) */
++	if (fetch_name(cFilePath, iLength, M1) != OK)
++		return err_code;
++
++	pVNode = eat_path(PATH_NOFLAGS, fp); /* see open.c */
++	if (pVNode == NULL)
++		return err_code;
++
++	/* Check file type: not dir, etc. */
++	if ((pVNode->v_mode & I_TYPE) != I_REGULAR) {
++		put_vnode(pVNode); /* will free vnode */
++		return EFTYPE;
++	}
++	if (pVNode->v_ref_count > 1) { /* resource busy if file opened */
++		put_vnode(pVNode);
++		return EBUSY;
++	}
++
++	v_fs_e = pVNode->v_fs_e;
++	v_inode_nr = pVNode->v_inode_nr;
++	put_vnode(pVNode); /* release it not */
++
++	/* check if we have to defrag this file */
++	iReturn = req_nfrags(v_fs_e, v_inode_nr, &iNFrags);
++	if (iReturn == OK && iNFrags > 1)
++		iReturn = req_defrag(v_fs_e, v_inode_nr);
++
++	if (iReturn != OK)
++		return iReturn;
++	else
++		return iNFrags;
++}
++
++/*===========================================================================*
++ *				 do_nfrags				     *
++ *===========================================================================*/
++PUBLIC int do_nfrags()
++{
++	int iReturn, iLength, iNFrags;
++	struct vnode *pVNode;
++	char *cFilePath;
++	endpoint_t v_fs_e; /* for req_nfrags */
++	ino_t v_inode_nr;
++
++	/* mostly the same as defrags except the request */
++
++	cFilePath = m_in.m3_p1;
++	iLength = m_in.m3_i1;
++
++	/* See if file exists: utilities.c: int fetch_name(path, len, flag) */
++	if (fetch_name(cFilePath, iLength, M1) != OK)
++		return err_code;
++
++	pVNode = eat_path(PATH_NOFLAGS, fp);
++	if (pVNode == NULL)
++		return err_code;
++
++	/* Check file type: not dir, etc. */
++	if ((pVNode->v_mode & I_TYPE) != I_REGULAR) {
++		put_vnode(pVNode);
++		return EFTYPE; /* wrong file format or type */
++	}
++
++	/* no need to check if the resource is busy, we do not modify it! */
++
++	v_fs_e = pVNode->v_fs_e;
++	v_inode_nr = pVNode->v_inode_nr;
++	put_vnode(pVNode); /* release it not */
++
++	iReturn = req_nfrags(v_fs_e, v_inode_nr, &iNFrags);
++
++	if (iReturn != OK)
++		return iReturn;
++	else
++		return iNFrags;
++}
++
++
+diff -urN --exclude .svn --exclude '*~' ./src_orig/servers/vfs/proto.h ./src/servers/vfs/proto.h
+--- ./src_orig/servers/vfs/proto.h	2010-08-30 15:44:07.000000000 +0200
++++ ./src/servers/vfs/proto.h	2013-05-15 11:41:30.000000000 +0200
+@@ -105,6 +105,8 @@
+ _PROTOTYPE( int do_getsysinfo, (void)					);
+ _PROTOTYPE( int pm_dumpcore, (int proc_e, struct mem_map *seg_ptr)	);
+ _PROTOTYPE( void ds_event, (void)					);
++_PROTOTYPE( int do_defrag, (void)					);
++_PROTOTYPE( int do_nfrags, (void)					);
+ 
+ /* mount.c */
+ _PROTOTYPE( int do_fslogin, (void)                                      );
+diff -urN --exclude .svn --exclude '*~' ./src_orig/servers/vfs/request.c ./src/servers/vfs/request.c
+--- ./src_orig/servers/vfs/request.c	2010-08-30 15:44:07.000000000 +0200
++++ ./src/servers/vfs/request.c	2013-05-15 11:41:30.000000000 +0200
+@@ -1174,3 +1174,67 @@
+   return(reqm->m_type);
+ }
+ 
++
++/*===========================================================================*
++ *				req_defrag				     *
++ *===========================================================================*/
++PUBLIC int req_defrag(fs_e, inode_nr)
++endpoint_t fs_e;
++ino_t inode_nr;
++{
++  /* inspired by req_unlink (but we need to read) and req_stat */
++  cp_grant_id_t grant_id;
++  int sb;
++  int r;
++  message m;
++
++  /* check grand by security (see req_unlink) */
++  grant_id = cpf_grant_direct(fs_e, (vir_bytes) &sb, sizeof(int), CPF_WRITE);
++  if (grant_id < 0)
++        panic("req_defrag: cpf_grant_* failed");
++
++  /* Fill in request message */
++  m.m_type = REQ_DEFRAG;
++  m.REQ_INODE_NR = inode_nr;
++  m.REQ_GRANT = grant_id;
++
++  /* Send/rec request */
++  r = fs_sendrec(fs_e, &m);
++  cpf_revoke(grant_id);
++
++  return r;
++}
++
++
++ /*===========================================================================*
++ *				req_nfrags				     *
++ *===========================================================================*/
++PUBLIC int req_nfrags(fs_e, inode_nr, iNFrags)
++endpoint_t fs_e;
++ino_t inode_nr;
++int* iNFrags;
++{
++  /* same as req_defrag but with 'm.m_type = REQ_NFRAGS;' & iNFrags */
++  int sb;
++  cp_grant_id_t grant_id;
++  int r;
++  message m;
++
++  grant_id = cpf_grant_direct(fs_e, (vir_bytes) &sb, sizeof(int), CPF_WRITE);
++  if (grant_id < 0)
++        panic("req_nfrags: cpf_grant_* failed");
++
++  /* Fill in request message */
++  m.m_type = REQ_NFRAGS;
++  m.REQ_INODE_NR = inode_nr;
++  m.REQ_GRANT = grant_id;
++
++
++  /* Send/rec request */
++  r = fs_sendrec(fs_e, &m);
++  *iNFrags = m.m9_s2; /** maybe took another one? **/
++  cpf_revoke(grant_id);
++
++  return r;
++}
++
+diff -urN --exclude .svn --exclude '*~' ./src_orig/servers/vfs/table.c ./src/servers/vfs/table.c
+--- ./src_orig/servers/vfs/table.c	2010-08-30 15:44:07.000000000 +0200
++++ ./src/servers/vfs/table.c	2013-05-15 11:41:30.000000000 +0200
+@@ -129,6 +129,8 @@
+ 	no_sys,		/* 110 = (getdma) */
+ 	no_sys,		/* 111 = (srv_kill) */
+ 	do_gcov_flush,	/* 112 = gcov_flush */
++	do_defrag,		/* 113 = defrag */
++	do_nfrags,		/* 114 = nfrags */
+ };
+ /* This should not fail with "array size is negative": */
+ extern int dummy[sizeof(call_vec) == NCALLS * sizeof(call_vec[0]) ? 1 : -1];
